@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mitechcondemo
+  annotations:
+    external-dns.aplpha.kubernetes.io/hostname: mitechcondemo.doc.network
+  namespace: m3test
+
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - mitechcondemo.doc.network
+    secretName: doc-network-wildcard-cert
+  rules:
+  - host: mitechcondemo.doc.network
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: mitechcondemo
+            port:
+              number: 8501
+

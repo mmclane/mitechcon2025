@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: mitechcondemo
+  name: mitechcondemo
+  namespace: m3test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mitechcondemo
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mitechcondemo
+    spec:
+      containers:
+      - image: repos.doc.network/m3test/mitechcondemo:0.1.0
+        imagePullPolicy: Always
+        name: mitechcondemo
+        ports:
+        - containerPort: 8501
+          protocol: TCP
+        resources:
+          limits:
+            memory: 2Gi
+            cpu: 800m
+          requests:
+            cpu: 300m
+            memory: 1Gi
+        volumeMounts:
+        - name: message
+          mountPath: /application/message.txt
+          subPath: message
+        - name: scratch
+          mountPath: /application/temp
+      restartPolicy: Always
+      volumes:
+      - name: message
+        configMap:
+          name: mitechcondemo-message
+      - name: scratch
+        emptyDir: {}
