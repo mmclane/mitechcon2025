@@ -1,0 +1,31 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Project
+metadata:
+  name: mitechcondemo
+spec:
+  promotionPolicies:
+  - stage: dev
+    autoPromotionEnabled: true
+  - stage: qa
+    autoPromotionEnabled: false
+
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: github-repo-auth
+  namespace: mitechcondemo
+spec:
+  secretStoreRef:
+    name: secretsmanager
+    kind: ClusterSecretStore
+  refreshInterval: "1h"
+  target:
+    name: github-repo-auth
+    template:
+      metadata:
+        labels:
+          kargo.akuity.io/cred-type: git
+  dataFrom:
+  - extract:
+      key: infra/kargo/github-repo-auth

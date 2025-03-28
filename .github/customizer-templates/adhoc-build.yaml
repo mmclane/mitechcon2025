@@ -1,0 +1,47 @@
+name: Adhoc Build Workflow
+run-name: ${{ github.actor }} initiated this build via ${{ github.event_name }}
+on:
+  workflow_dispatch:
+    inputs:
+      step:
+        description: "Semver step"
+        default: "patch"
+        type: choice
+        options:
+          - "patch"
+          - "minor"
+          - "major"
+
+jobs:
+  setup:
+    runs-on: hub-arc-runners
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get values from inputs
+        id: get-inputs
+        env:
+          GH_EVENT: ${{ github.event_name }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ${{ github.event_name == 'workflow_dispatch' }}; then
+            echo "PR=ADHOC" >> $GITHUB_OUTPUT
+            echo "SHA=''" >> $GITHUB_OUTPUT
+          else
+            # If this wasn't run manually
+            echo "PR=$(gh pr list --json number | jq '[ .[0].number ][0]')" >> $GITHUB_OUTPUT
+            echo "SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          fi
+
+    outputs:
+      PR: ${{ steps.get-inputs.outputs.PR }}
+      SHA: ${{ steps.get-inputs.outputs.SHA }}
+
+  adhoc-build:
+    needs: setup
+    uses: mmclane/github-actions/.github/workflows/{{ adhoc-build-workflow }}
+    with:
+      step: patch
+      pr: ${{ needs.setup.outputs.PR }}
+      sha: ${{ needs.setup.outputs.SHA }}

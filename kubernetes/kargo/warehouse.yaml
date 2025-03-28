@@ -1,0 +1,15 @@
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Warehouse
+metadata:
+  name: mitechcondemo
+  namespace: mitechcondemo
+spec:
+  interval: 2m0s
+  subscriptions:
+  - image:
+      repoURL: example.repo.com/m3test/mitechcondemo
+      discoveryLimit: 10
+  - chart:
+      repoURL: oci://example.repo.com/helm-charts/mitechcondemo
+      discoveryLimit: 10

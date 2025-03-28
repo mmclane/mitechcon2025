@@ -1,0 +1,44 @@
+README.md:
+    destination: .
+    skip: false
+    values:
+        repo-name: mitechcon # Repository name for README
+        repo-description: Demo for MITechCon 2025 # Description for README
+
+Makefile:
+    destination: .
+    skip: false
+    values:
+        # Used to construct the ARTIFACT_REPO in the make file
+        # i.e ARTIFACT_REPO:=$(ECR)/$(HARBOR_PROJECT)/$(CONTAINER_NAME)
+        harbor-project: m3test
+        container-name: mitechcondemo
+        builder-default: docker # podman | docker
+
+Dockerfile:
+    destination: src
+    skip: false
+    values:
+        service-name: application
+
+# Workflows
+# Points to reusable worflows in the github-actions repo
+# This should be the name of the workflow and the branch i.e <workflow>@main
+build.yaml:
+    destination: .github/workflows
+    skip: false
+    values:
+        build-workflow: microservice-build.yaml@main
+
+linting.yaml:
+    destination: .github/workflows
+    skip: false
+    values:
+        linting-workflow: microservice-linting.yaml@main
+        dockerfile: ./src/Dockerfile
+
+adhoc-build.yaml:
+    destination: .github/workflows
+    skip: false
+    values:
+        adhoc-build-workflow: microservice-adhoc-build.yaml@main

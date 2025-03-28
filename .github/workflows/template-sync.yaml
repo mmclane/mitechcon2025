@@ -1,0 +1,23 @@
+name: Template Sync
+run-name: ${{ github.actor }} initiated this  Template sync
+on:
+  workflow_dispatch: # manual trigger
+
+jobs:
+  template-sync:
+    runs-on: hub-arc-runners
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.TEMPLATE_SYNC_TOKEN }}
+
+      - name: actions-template-sync
+        uses: AndreasAugustin/actions-template-sync@v2
+        with:
+          github_token: ${{ secrets.TEMPLATE_SYNC_TOKEN }}
+          source_repo_path: mmclane/template-microservice
+          upstream_branch: develop
+          pr_title: "Sync with mmclane/template-microservice"
+          pr_labels: skip-build,template-sync

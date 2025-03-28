@@ -1,0 +1,334 @@
+
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: dev
+  namespace: mitechcondemo
+spec:
+  requestedFreight:
+  - origin:
+      kind: Warehouse
+      name: mitechcondemo
+    sources:
+      direct: true
+  promotionTemplate:
+    spec:
+      steps:
+        - uses: git-clone
+          as: clone
+          config:
+            repoURL: https://github.com/mmclane/mitechcon.git
+            checkout:
+            - branch: main
+              path: ./repo
+
+        - uses: yaml-update
+          as: update-container-tag
+          config:
+            path: ./repo/kubernetes/dev-mitechcondemo.yaml
+            updates:
+            - key: spec.sources.0.helm.valuesObject.deployment.image.tag
+              value: ${{ imageFrom("example.repo.com/m3test/mitechcondemo").Tag }}
+
+        - uses: yaml-update
+          as: update-helm-chart
+          config:
+            path: ./repo/kubernetes/dev-mitechcondemo.yaml
+            updates:
+            - key: spec.sources.0.targetRevision
+              value: ${{ chartFrom("oci://example.repo.com/helm-charts/mitechcondemo").Version }}
+
+        - uses: git-commit
+          as: commit
+          config:
+            path: ./repo
+            message: |
+              Kargo promotion of ${{ ctx.stage }} ${{ ctx.project }}
+
+              Kargo promotion ID: ${{ ctx.promotion }}
+
+              Image tag set for image example.repo.com/mmclane/mitechcondemo
+              ${{ outputs['update-container-tag'].commitMessage }}
+
+              Helm chart revision set for chart core
+              ${{ outputs['update-helm-chart'].commitMessage }}
+
+        - uses: git-push
+          as: push
+          config:
+            path: ./repo
+
+        - uses: argocd-update
+          as: sync
+          config:
+            apps:
+            - name: dev-mitechcondemo
+              sources:
+              - repoURL: example.repo.com/helm-charts
+                chart: mitechcondemo
+                desiredRevision: ${{ chartFrom("oci://example.repo.com/helm-charts/mitechcondemo").Version }}
+                updateTargetRevision: true
+                helm:
+                  images:
+                    - key: deployment.image.tag
+                      value: ${{ imageFrom("example.repo.com/m3test/mitechcondemo").Tag }}
+
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: qa
+  namespace: mitechcondemo
+spec:
+  requestedFreight:
+  - origin:
+      kind: Warehouse
+      name: mitechcondemo
+    sources:
+      stages:
+      - dev
+  promotionTemplate:
+    spec:
+      steps:
+        - uses: git-clone
+          as: clone
+          config:
+            repoURL: https://github.com/mmclane/mitechcon.git
+            checkout:
+            - branch: main
+              path: ./repo
+
+        - uses: yaml-update
+          as: update-container-tag
+          config:
+            path: ./repo/kubernetes/qa-mitechcondemo.yaml
+            updates:
+            - key: spec.sources.0.helm.valuesObject.deployment.image.tag
+              value: ${{ imageFrom("example.repo.com/m3test/mitechcondemo").Tag }}
+
+        - uses: yaml-update
+          as: update-helm-chart
+          config:
+            path: ./repo/kubernetes/qa-mitechcondemo.yaml
+            updates:
+            - key: spec.sources.0.targetRevision
+              value: ${{ chartFrom("oci://example.repo.com/helm-charts/mitechcondemo").Version }}
+
+        - uses: git-commit
+          as: commit
+          config:
+            path: ./repo
+            message: |
+              Kargo promotion of ${{ ctx.stage }} ${{ ctx.project }}
+
+              Kargo promotion ID: ${{ ctx.promotion }}
+
+              Image tag set for image example.repo.com/mmclane/mitechcondemo
+              ${{ outputs['update-container-tag'].commitMessage }}
+
+              Helm chart revision set for chart core
+              ${{ outputs['update-helm-chart'].commitMessage }}
+
+        - uses: git-push
+          as: push
+          config:
+            path: ./repo
+
+        - uses: argocd-update
+          as: sync
+          config:
+            apps:
+            - name: qa-mitechcondemo
+              sources:
+              - repoURL: example.repo.com/helm-charts
+                chart: mitechcondemo
+                desiredRevision: ${{ chartFrom("oci://example.repo.com/helm-charts/mitechcondemo").Version }}
+                updateTargetRevision: true
+                helm:
+                  images:
+                    - key: deployment.image.tag
+                      value: ${{ imageFrom("example.repo.com/m3test/mitechcondemo").Tag }}
+
+        - uses: http
+          as: Create-Deploy-PR
+          config:
+            method: POST
+            timeout: 1m
+            url: http://kargo-helper-service.kargo-helper.svc.cluster.local:5000/release
+            headers:
+            - name: Content-Type
+              value: application/json
+            body: |
+              ${{ quote({
+              "project": "m3test",
+              "artifact": "mitechcondemo",
+              "gitrepo": "mitechcon",
+              "tag": imageFrom("example.repo.com/m3test/mitechcondemo").Tag
+              }) }}
+
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: staging
+  namespace: mitechcondemo
+spec:
+  requestedFreight:
+  - origin:
+      kind: Warehouse
+      name: mitechcondemo
+    sources:
+      stages:
+      - qa
+  promotionTemplate:
+    spec:
+        steps:
+        - uses: git-clone
+          as: clone
+          config:
+            repoURL: https://github.com/mmclane/mitechcon.git
+            checkout:
+            - branch: main
+              path: ./repo
+
+        - uses: yaml-update
+          as: update-container-tag
+          config:
+            path: ./repo/kubernetes/staging-mitechcondemo.yaml
+            updates:
+            - key: spec.sources.0.helm.valuesObject.deployment.image.tag
+              value: ${{ imageFrom("example.repo.com/m3test/mitechcondemo").Tag }}
+
+        - uses: yaml-update
+          as: update-helm-chart
+          config:
+            path: ./repo/kubernetes/staging-mitechcondemo.yaml
+            updates:
+            - key: spec.sources.0.targetRevision
+              value: ${{ chartFrom("oci://example.repo.com/helm-charts/mitechcondemo").Version }}
+
+        - uses: git-commit
+          as: commit
+          config:
+            path: ./repo
+            message: |
+              Kargo promotion of ${{ ctx.stage }} ${{ ctx.project }}
+
+              Kargo promotion ID: ${{ ctx.promotion }}
+
+              Image tag set for image example.repo.com/mmclane/mitechcondemo
+              ${{ outputs['update-container-tag'].commitMessage }}
+
+              Helm chart revision set for chart core
+              ${{ outputs['update-helm-chart'].commitMessage }}
+
+        - uses: git-push
+          as: push
+          config:
+            path: ./repo
+
+        - uses: argocd-update
+          as: sync
+          config:
+            apps:
+            - name: staging-mitechcondemo
+              sources:
+              - repoURL: example.repo.com/helm-charts
+                chart: mitechcondemo
+                desiredRevision: ${{ chartFrom("oci://example.repo.com/helm-charts/mitechcondemo").Version }}
+                updateTargetRevision: true
+                helm:
+                  images:
+                    - key: deployment.image.tag
+                      value: ${{ imageFrom("example.repo.com/m3test/mitechcondemo").Tag }}
+
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: prod
+  namespace: mitechcondemo
+spec:
+  requestedFreight:
+  - origin:
+      kind: Warehouse
+      name: mitechcondemo
+    sources:
+      stages:
+      - staging
+  promotionTemplate:
+    spec:
+      steps:
+        - uses: git-clone
+          as: clone
+          config:
+            repoURL: https://github.com/mmclane/mitechcon.git
+            checkout:
+            - branch: main
+              path: ./repo
+
+        - uses: yaml-update
+          as: update-container-tag
+          config:
+            path: ./repo/kubernetes/prod-mitechcondemo.yaml
+            updates:
+            - key: spec.sources.0.helm.valuesObject.deployment.image.tag
+              value: ${{ imageFrom("example.repo.com/m3test/mitechcondemo").Tag }}
+
+        - uses: yaml-update
+          as: update-helm-chart
+          config:
+            path: ./repo/kubernetes/prod-mitechcondemo.yaml
+            updates:
+            - key: spec.sources.0.targetRevision
+              value: ${{ chartFrom("oci://example.repo.com/helm-charts/mitechcondemo").Version }}
+
+        - uses: git-commit
+          as: commit
+          config:
+            path: ./repo
+            message: |
+              Kargo promotion of ${{ ctx.stage }} ${{ ctx.project }}
+
+              Kargo promotion ID: ${{ ctx.promotion }}
+
+              Image tag set for image example.repo.com/mmclane/mitechcondemo
+              ${{ outputs['update-container-tag'].commitMessage }}
+
+              Helm chart revision set for chart core
+              ${{ outputs['update-helm-chart'].commitMessage }}
+
+        - uses: git-push
+          as: push
+          config:
+            path: ./repo
+
+        - uses: argocd-update
+          as: sync
+          config:
+            apps:
+            - name: prod-mitechcondemo
+              sources:
+              - repoURL: example.repo.com/helm-charts
+                chart: mitechcondemo
+                desiredRevision: ${{ chartFrom("oci://example.repo.com/helm-charts/mitechcondemo").Version }}
+                updateTargetRevision: true
+                helm:
+                  images:
+                    - key: deployment.image.tag
+                      value: ${{ imageFrom("example.repo.com/m3test/mitechcondemo").Tag }}
+
+        - as: Finish-Deploy-PR
+          uses: http
+          config:
+            method: POST
+            timeout: 1m
+            url: http://kargo-helper-service.kargo-helper.svc.cluster.local:5000/finishrelease
+            headers:
+            - name: Content-Type
+              value: application/json
+            body: |
+              ${{ quote({
+              "gitrepo": "mitechcon"
+              }) }}

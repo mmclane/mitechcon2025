@@ -1,0 +1,39 @@
+exclude: ^\.github/customizer-templates/.*$
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.6.0
+  hooks:
+    - id: end-of-file-fixer
+      stages: [pre-commit]
+    - id: trailing-whitespace
+      stages: [pre-commit]
+    - id: check-merge-conflict
+      stages: [pre-commit]
+    - id: no-commit-to-branch
+      stages: [pre-commit]
+      args: [--branch, master, --branch, main, --branch, develop]
+
+-   repo: local
+    hooks:
+      - id: linting
+        name: Run Linters
+        entry: make lint
+        language: system
+        stages: [pre-commit]
+
+# Pre-push hooks
+- repo: local
+  hooks:
+    - id: UnitTests
+      name: Run Unit Tests
+      language: system
+      entry: make pre-push
+      stages: [pre-push]
+
+-   repo: local
+    hooks:
+      - id: linting
+        name: Run Trivy Scanners
+        entry: make scan
+        language: system
+        stages: [pre-push]

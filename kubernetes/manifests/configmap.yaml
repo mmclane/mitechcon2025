@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: mitechcondemo-message
-  namespace: m3test
-data:
-  message: "Take me to your leader"

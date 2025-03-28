@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prod-mitechcondemo
+  namespace: argocd
+  annotations:
+    kargo.akuity.io/authorized-stage: 'mitechcondemo:prod'
+  labels:
+    stack: mitechcondemo
+    stage: prod
+spec:
+  project: default
+  destination:
+    name: dev
+    namespace: m3test
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: false
+    syncOptions:
+    - CreateNamespace=true
+    - RespectIgnoreDifferences=true
+  sources:
+  - repoURL: example.repo.com/helm-charts
+    targetRevision: 0.1.0
+    chart: mitechcondemo
+    helm:
+      releaseName: 'prod-mitechcondemo'
+      valuesObject:
+        config:
+          message: "This is a helm chart installed by appset for prod"
+        deployment:
+          image:
+            repo: example.repo.com
+            name: m3test/mitechcondemo
+            tag: 0.1.1
+          envs:
+            RUN_ENV: 'prod'
+            TXT_COLOR: 'green'
+        ingress:
+          host: 'prod-mitechcondemo.example.com'
