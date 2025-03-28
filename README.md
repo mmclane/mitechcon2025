@@ -5,6 +5,8 @@ This is the demo environment from my presentation at MITechCon 2025.  It is prov
 >[!IMPORTANT]
 >It is important to note that what I have include here will not work out of the box.  I did change some values like the repository names.  If you want to actually use this stuff you will need to >go through it with a fine tooth comb and modify things to meet your needs.  I am simply providing this as a reference for you to reverse engineer.
 
+The presentation slides can be seen here: 
+[MiTechCon 2025 Presentation (PDF)](./MiTechCon_Presentation.pdf)
 # Tool list
 
 One of my main goals was to share the tools we had used build our new pipelines so that others can take that list like building blocks and build their own solutions.  I was asked if I had a blog post or something with the list of tools that we had used.  This is my effort to create that list.  I believe this is a complete list of tools and technologies that was used to build our CI/CD pipelines.  I would be more then happy to answer any questions.
