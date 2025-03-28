@@ -34,11 +34,9 @@ One of my main goals was to share the tools we had used build our new pipelines 
 	- https://trivy.dev/latest/
 - github actions
 	- We have three standard github actions for each of our repositories.
-		- 1. linting: This workflow runs our linters to validate that they had passed before being commited and pushed.  This workflow runs on
-			- pull_request types:[opened, reopened, synchronize, ready_for_review]
-			- branches: [main, master, develop]
-		- 2. build: First runs our Unittests.  Then runs ```make build``` to build and push the new artifact.  It also uses ```make get-ver``` to calculate the version for that artifact while filling in the STEP variable based on pull request labels.  This workflow runs when the pull_request is closed but only if it was also merged and the skip-build label isn't present on the PR.
-		- 3. adhoc build: A slightly modified version of our build worflow that runs when manually triggered against any branch.
+   		1. linting: This workflow runs our linters to validate that they had passed before being commited and pushed.  This workflow runs on pull_request types:[opened, reopened, synchronize, ready_for_review] against branches: [main, master, develop]
+		2. build: First runs our Unittests.  Then runs ```make build``` to build and push the new artifact.  It also uses ```make get-ver``` to calculate the version for that artifact while filling in the STEP variable based on pull request labels.  This workflow runs when the pull_request is closed but only if it was also merged and the skip-build label isn't present on the PR.
+		3. adhoc build: A slightly modified version of our build worflow that runs when manually triggered against any branch.
 - Harbor
 	- This is our new artifact repository.  It is a private repository that we host in our management cluster.  It allows us to scan artifacts with trivy when they are pushed into the repo, set availability rules based on those scan results, cache containers from other repositories, backup and replicated our containers, and more.
 	- https://goharbor.io/
