@@ -1,10 +1,8 @@
 # mitechcon
-![linting workflow](https://github.com/mmclane/mitechcon/actions/workflows/linting.yaml/badge.svg)
-![build workflow](https://github.com/mmclane/mitechcon/actions/workflows/build.yaml/badge.svg?event=pull_request)
 
 This is the demo environment from my presentation at MITechCon 2025.  It is provided as a reference.  If you have questions, let me know.
 
-[!IMPORTANT]
+![!IMPORTANT]
 It is important to note that what I have include here will not work out of the box.  I did change some values like the repository names.  If you want to actually use this stuff you will need to go through it with a fine tooth comb and modify things to meet your needs.  I am simply providing this as a reference for you to reverse engineer.
 
 # Tool list
