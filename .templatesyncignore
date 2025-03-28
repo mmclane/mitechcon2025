@@ -1,0 +1,12 @@
+customize.yaml
+.trivyignore.yaml
+.dockerignore
+src/*
+
+# The following is set by customizer.py.  Do not remove or edit:
+Dockerfile
+adhoc-build.yaml
+build.yaml
+Makefile
+README.md
+linting.yaml

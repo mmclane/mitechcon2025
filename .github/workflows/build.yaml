@@ -1,0 +1,82 @@
+name: Building Workflow
+run-name: ${{ github.actor }} initiated this build via ${{ github.event_name }}
+on:
+  pull_request:
+    types:
+      - closed
+    branches: [develop]
+
+jobs:
+  get-info:
+    if: ${{ (github.event.pull_request.merged == true) && (contains( github.event.pull_request.labels.*.name, 'skip-build') == false) }}
+    runs-on: hub-arc-runners
+    permissions:
+      pull-requests: write
+      contents: read
+    outputs:
+      sha: ${{ steps.sha.outputs.sha_short }}
+      pr: ${{ steps.getpr.outputs.pr }}
+      step: ${{ steps.steplabel.outputs.step }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get short sha
+        id: sha
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: get-pr-number
+        id: getpr
+        uses: bcgov-nr/action-get-pr@v0.0.1
+        with:
+          token: ${{ github.token }}
+
+      - name: Check semver labels
+        id: steplabel
+        env:
+          major: ${{ contains( github.event.pull_request.labels.*.name, 'major') }}
+          minor: ${{ contains( github.event.pull_request.labels.*.name, 'minor') }}
+          patch: ${{ contains( github.event.pull_request.labels.*.name, 'patch') }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Checking for semver labels"
+          if [ $major == 'true' ]
+          then
+              echo "Major label found"
+              gh issue edit ${{ steps.getpr.outputs.pr }} --repo ${{ github.repository }} --remove-label minor
+              gh issue edit ${{ steps.getpr.outputs.pr }} --repo ${{ github.repository }} --remove-label patch
+              echo "step=major" >> $GITHUB_OUTPUT
+              exit 0
+          elif [ $minor == 'true' ]
+          then
+              echo "Minor label found"
+              gh issue edit ${{ steps.getpr.outputs.pr }} --repo ${{ github.repository }} --remove-label patch
+              echo "step=minor" >> $GITHUB_OUTPUT
+              exit 0
+          elif [ $patch == 'true' ]
+          then
+              echo "Patch label found"
+              echo "step=patch" >> $GITHUB_OUTPUT
+              exit 0
+          else
+              echo "No semver label found"
+              echo "defaulting to minor"
+              gh issue edit ${{ steps.getpr.outputs.pr }} --repo ${{ github.repository }} --add-label minor
+              echo "step=minor" >> $GITHUB_OUTPUT
+              exit 0
+          fi
+      - name: outputs
+        id: outputs
+        run: |
+          echo "sha=${{ steps.sha.outputs.sha_short }}"
+          echo "pr=${{ steps.getpr.outputs.pr }}"
+          echo "step=${{ steps.steplabel.outputs.step }}"
+  build:
+    needs: get-info
+    uses: mmclane/github-actions/.github/workflows/microservice-build.yaml@main
+    with:
+      repo: ${{ github.repository }}
+      sha: ${{ needs.get-info.outputs.sha }}
+      pr: ${{ needs.get-info.outputs.pr }}
+      step: ${{ needs.get-info.outputs.step }}

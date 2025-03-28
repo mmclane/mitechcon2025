@@ -1,0 +1,11 @@
+name: Linting
+run-name: ${{ github.actor }} initiated this linting via ${{ github.event_name }}
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    branches: [main, master, develop]
+jobs:
+  lint:
+    uses: mmclane/github-actions/.github/workflows/microservice-linting.yaml@main
+    with:
+      dockerfile: ./src/Dockerfile

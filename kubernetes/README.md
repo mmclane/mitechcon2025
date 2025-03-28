@@ -1,0 +1,1 @@
+The content in this directory is what was used to setup both the ArgoCD applications used in the demo as well as the kargo project.  Normally this would be in our repository with all of our other kubernetes configuration and synced to the cluster with ArgoCD.  For this demo I instead did it by hand so that I could keep everything in one space.

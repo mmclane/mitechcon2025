@@ -1,0 +1,11 @@
+misconfigurations:
+  - id: AVD-KSV-0014
+
+vulnerabilities:
+  # CRITICAL Vulnerabilites
+
+  # HIGH Vulnerabilites
+
+secrets:
+
+## NOTE, LOW, MEDIUM, and UNKNOWN Ignored.

@@ -2,23 +2,24 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: mitechcondemo
-  name: mitechcondemo
-  namespace: m3test
+  {{- include "mitechcondemo.labels" . | nindent 4 }}
+  name: {{ include "mitechcondemo.fullname" . }}
 spec:
   replicas: 1
+  revisionHistoryLimit: 0
   selector:
     matchLabels:
-      app: mitechcondemo
+      app: {{ include "mitechcondemo.fullname" . }}
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app: mitechcondemo
+        app: {{ include "mitechcondemo.fullname" . }}
     spec:
       containers:
-      - image: repos.doc.network/m3test/mitechcondemo:0.1.0
+      - image: {{ .Values.deployment.image.repo }}/{{ .Values.deployment.image.name }}:{{ .Values.deployment.image.tag | default
+          .Chart.AppVersion }}
         imagePullPolicy: Always
         name: mitechcondemo
         ports:
@@ -31,7 +32,17 @@ spec:
           requests:
             cpu: 300m
             memory: 1Gi
+        env:
+        {{- if .Values.deployment.envs }}
+        {{- range $key, $value := .Values.deployment.envs }}
+        - name: {{ $key }}
+          value: {{ quote $value }}
+        {{- end }}
+        {{- end }}
         volumeMounts:
+        - name: message
+          mountPath: /application/title.txt
+          subPath: title
         - name: message
           mountPath: /application/message.txt
           subPath: message
@@ -41,6 +52,6 @@ spec:
       volumes:
       - name: message
         configMap:
-          name: mitechcondemo-message
+          name: {{ include "mitechcondemo.fullname" . }}-message
       - name: scratch
         emptyDir: {}

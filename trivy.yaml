@@ -1,0 +1,20 @@
+ignorefile: .trivyignore.yaml
+severity:
+  - CRITICAL
+  - HIGH
+scan:
+  skip-dirs:
+    - .github/customizer-templates
+    - kubernetes/
+    - helmchart/
+    - bin/
+
+table-mode:
+ - summary
+ - detailed
+
+vulnerability:
+  ignore-unfixed: true
+
+secret:
+  config: trivy-secret.yaml

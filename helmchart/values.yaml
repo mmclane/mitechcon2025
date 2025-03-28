@@ -1,0 +1,18 @@
+# -- If set to false, nothing will be installed.
+enabled: true
+config:
+  message: "This is a helm chart"
+
+deployment:
+  image:
+    repo: example.repo.com
+    name: m3test/mitechcondemo
+    tag: current
+
+  envs:
+    mitechcondemo: "true"
+
+ingress:
+  enabled: true
+  host: mitechcondemo.doc.network
+  tlsSecret: wildcard-cert
