@@ -1,4 +1,4 @@
-# mitechcon
+# MITechcon 2025
 
 This is the demo environment from my presentation at MITechCon 2025.  It is provided as a reference.  If you have questions, let me know.
 
